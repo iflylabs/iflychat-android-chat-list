@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        <item type="id" name="user_image" />
+        <item type="id" name="searchviewuser" />
+        <item type="id" name="searchviewroom" />
+</resources>
