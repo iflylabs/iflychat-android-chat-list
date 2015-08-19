@@ -14,7 +14,7 @@ public class TabPagerAdapter extends FragmentStatePagerAdapter {
   public SherlockFragment getItem(int i) {
     switch (i) {
         case 0:
-            //Fragement for Users Tab
+            //Fragment for Users Tab
             return new DisplayUser();
         case 1:
            //Fragment for Rooms Tab

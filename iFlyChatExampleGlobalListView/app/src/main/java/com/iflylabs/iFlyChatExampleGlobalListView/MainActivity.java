@@ -3,12 +3,10 @@ package com.iflylabs.iFlyChatExampleGlobalListView;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
-
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.iflylabs.iFlyChatLibrary.iFlyChatConfig;
 import com.iflylabs.iFlyChatLibrary.iFlyChatService;
@@ -24,17 +22,13 @@ public class MainActivity extends SherlockFragmentActivity {
     protected iFlyChatService service;
     private iFlyChatConfig config;
     private iFlyChatUserSession userSession;
-
     private iFlyChatUserAuthService authService;
 
     private String serverHost = "api.iflychat.com", sessionKey = "",
             authUrl = "http://your.website.com/auth-url";
 
     private Context mContext;
-    LocalBroadcastManager bManager;
     int currentFragment;
-
-
     ViewPager Tab;
     TabPagerAdapter TabAdapter;
     com.actionbarsherlock.app.ActionBar actionBar;
@@ -48,15 +42,14 @@ public class MainActivity extends SherlockFragmentActivity {
 
         setContentView(R.layout.tablayout);
 
-        mContext = getApplicationContext();
-
-
         userSession = new iFlyChatUserSession("username", "password");
 
-        config = new iFlyChatConfig(serverHost, authUrl, false, userSession);
+        config = new iFlyChatConfig(serverHost, authUrl, true,
+                userSession);
 
         config.setAutoReconnect(true);
 
+        mContext = getApplicationContext();
         authService = new iFlyChatUserAuthService(config, userSession, mContext);
 
         sessionKey = userSession.getSessionKey();
@@ -88,7 +81,6 @@ public class MainActivity extends SherlockFragmentActivity {
         final com.actionbarsherlock.app.ActionBar.Tab users = getSupportActionBar().newTab();
         final com.actionbarsherlock.app.ActionBar.Tab rooms = getSupportActionBar().newTab();
 
-
         LayoutInflater inflater = getLayoutInflater();
 
         final View users_tab_view = inflater.inflate(R.layout.custom_tab, null);
@@ -102,12 +94,10 @@ public class MainActivity extends SherlockFragmentActivity {
 
         tabListener = new com.actionbarsherlock.app.ActionBar.TabListener() {
 
-
             @Override
             public void onTabSelected(com.actionbarsherlock.app.ActionBar.Tab tab,
                                       android.support.v4.app.FragmentTransaction ft) {
                 Tab.setCurrentItem(tab.getPosition());
-
 
                 searchview = (com.actionbarsherlock.widget.SearchView) findViewById(R.id.searchviewuser);
                 if (searchview != null) {
@@ -122,10 +112,8 @@ public class MainActivity extends SherlockFragmentActivity {
                     searchview.setIconified(true);
                 }
 
-
                 //to set tab's icon
                 if (tab.getPosition() == 0) {
-
 
                     (users_tab_view.findViewById(R.id.custom_tab_icon)).setBackgroundResource(R.drawable.selected_user);
                     (rooms_tab_view.findViewById(R.id.custom_tab_icon)).setBackgroundResource(R.drawable.group_unselected);
@@ -134,7 +122,6 @@ public class MainActivity extends SherlockFragmentActivity {
                     currentFragment = 0;
 
                 } else {
-
 
                     (users_tab_view.findViewById(R.id.custom_tab_icon)).setBackgroundResource(R.drawable.unselected_user);
                     (rooms_tab_view.findViewById(R.id.custom_tab_icon)).setBackgroundResource(R.drawable.group_selected);
@@ -176,7 +163,6 @@ public class MainActivity extends SherlockFragmentActivity {
 
         getSupportActionBar().addTab(users.setTabListener(tabListener));
         getSupportActionBar().addTab(rooms.setTabListener(tabListener));
-
 
         getSupportActionBar().setDisplayOptions(com.actionbarsherlock.app.ActionBar.DISPLAY_SHOW_CUSTOM | com.actionbarsherlock.app.ActionBar.DISPLAY_SHOW_HOME);
         getSupportActionBar().setDisplayUseLogoEnabled(false);

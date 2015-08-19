@@ -5,9 +5,6 @@
     android:background="#FFFFFF"
     android:orientation="vertical">
 
-
-
-
         <ListView
             android:id="@+id/user_list"
             android:layout_width="fill_parent"
@@ -18,9 +15,6 @@
             android:fadingEdge="vertical">
 
         </ListView>
-
-
-
 
 </LinearLayout>
 

@@ -10,17 +10,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.WrapperListAdapter;
-
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.actionbarsherlock.widget.SearchView;
 import com.iflylabs.iFlyChatLibrary.iFlyChatRoster;
 import com.iflylabs.iFlyChatLibrary.iFlyChatUser;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -101,9 +97,8 @@ public class DisplayUser extends SherlockFragment {
             public boolean onQueryTextChange(String newText) {
 
                 if (bindingData != null) {
+
                     bindingData.resetData();
-
-
                     bindingData.getFilter().filter(newText.toString());
                 }
 
