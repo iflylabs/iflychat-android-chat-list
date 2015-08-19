@@ -53,8 +53,7 @@ public class MainActivity extends SherlockFragmentActivity {
 
         userSession = new iFlyChatUserSession("username", "password");
 
-        config = new iFlyChatConfig(serverHost, authUrl,
-                userSession);
+        config = new iFlyChatConfig(serverHost, authUrl, false, userSession);
 
         config.setAutoReconnect(true);
 
