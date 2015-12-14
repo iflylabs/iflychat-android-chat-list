@@ -2,4 +2,23 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="tab_max_width">264dp</dimen>
+    <dimen name="tab_padding_bottom">16dp</dimen>
+    <dimen name="tab_label">14sp</dimen>
+    <dimen name="custom_tab_layout_height">40dp</dimen>
+
+    <!-- list_row xml dimens -->
+    <dimen name="user_image_layout_height">60dp</dimen>
+    <dimen name="user_image_layout_width">60dp</dimen>
+    <dimen name="user_image_layout_marginLeft">5dp</dimen>
+    <dimen name="user_image_layout_marginRight">10dp</dimen>
+    <dimen name="user_image_layout_marginTop">10dp</dimen>
+    <dimen name="user_image_layout_marginBottom">10dp</dimen>
+    <dimen name="user_name_layout_marginBottom">5dp</dimen>
+    <dimen name="user_name_textSize">16sp</dimen>
+
+    <!-- tool_bar xml dimens -->
+    <dimen name="imputSearch_textSize">22sp</dimen>
+
+
 </resources>

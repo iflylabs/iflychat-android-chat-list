@@ -1,218 +1,149 @@
-package com.iflylabs.iFlyChatExampleGlobalListView;
+package com.iflylabs.iflychatexamplegloballistview;
 
-import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.TextView;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import com.iflylabs.iFlyChatLibrary.iFlyChatConfig;
 import com.iflylabs.iFlyChatLibrary.iFlyChatService;
 import com.iflylabs.iFlyChatLibrary.iFlyChatUserAuthService;
 import com.iflylabs.iFlyChatLibrary.iFlyChatUserSession;
+import com.iflylabs.iFlyChatLibrary.util.iFlyChatUtilities;
 
 
+public class MainActivity extends AppCompatActivity {
 
-
-public class MainActivity extends SherlockFragmentActivity {
-
+    private Toolbar toolbar;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
 
     protected iFlyChatService service;
-    private iFlyChatConfig config;
+    protected iFlyChatConfig config;
     private iFlyChatUserSession userSession;
     private iFlyChatUserAuthService authService;
 
-    private String serverHost = "api.iflychat.com", sessionKey = "",
-            authUrl = "http://your.website.com/auth-url";
-
-    private Context mContext;
-    int currentFragment;
-    ViewPager Tab;
-    TabPagerAdapter TabAdapter;
-    com.actionbarsherlock.app.ActionBar actionBar;
-    com.actionbarsherlock.widget.SearchView searchview;
-    com.actionbarsherlock.app.ActionBar.TabListener tabListener;
-
+    private String serverHost = "", sessionKey = "",
+            authUrl = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        //iFlyChat Library objects
+        iFlyChatUtilities.setiFlyChatContext(getApplicationContext());
+        iFlyChatUtilities.setIsDebug(true);
 
-        setContentView(R.layout.tablayout);
+        userSession = new iFlyChatUserSession("", "");
 
-        userSession = new iFlyChatUserSession("username", "password");
-
-        config = new iFlyChatConfig(serverHost, authUrl, true,
-                userSession);
-
+        config = new iFlyChatConfig(serverHost, authUrl,
+                false);
         config.setAutoReconnect(true);
 
-        mContext = getApplicationContext();
-        authService = new iFlyChatUserAuthService(config, userSession, mContext);
+        authService = new iFlyChatUserAuthService(config, userSession);
 
         sessionKey = userSession.getSessionKey();
+        config.getIflychatSettings(sessionKey);
 
-        service = new iFlyChatService(userSession, config, authService, mContext);
+        HashMap<String,String> chatSettings = config.getChatSettings();
+
+        service = new iFlyChatService(userSession, config, authService);
 
         service.connectChat(sessionKey);
 
-        currentFragment = 0;
-        TabAdapter = new TabPagerAdapter(getSupportFragmentManager());
-        Tab = (ViewPager) findViewById(R.id.pager);
+        //To set the screen UI
 
-        Tab.setOnPageChangeListener(
-                new ViewPager.SimpleOnPageChangeListener() {
-                    @Override
-                    public void onPageSelected(int position) {
-                        actionBar = getSupportActionBar();
-                        actionBar.setSelectedNavigationItem(position);
+        toolbar = (Toolbar) findViewById(R.id.customToolbar);
+        setSupportActionBar(toolbar);
 
+        viewPager = (ViewPager) findViewById(R.id.viewpager);
+        setupViewPager(viewPager, chatSettings);
 
-                    }
-                });
+        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setSelectedTabIndicatorHeight(6);
+        tabLayout.setSelectedTabIndicatorColor(Color.parseColor("#ffffff"));
 
-        Tab.setAdapter(TabAdapter);
-        actionBar = getSupportActionBar();
-        //	Enable Tabs on Action Bar
-        actionBar.setNavigationMode(actionBar.NAVIGATION_MODE_TABS);
+        tabLayout.setupWithViewPager(viewPager);
 
-        final com.actionbarsherlock.app.ActionBar.Tab users = getSupportActionBar().newTab();
-        final com.actionbarsherlock.app.ActionBar.Tab rooms = getSupportActionBar().newTab();
-
-        LayoutInflater inflater = getLayoutInflater();
-
-        final View users_tab_view = inflater.inflate(R.layout.custom_tab, null);
-        final View rooms_tab_view = inflater.inflate(R.layout.custom_tab_rooms, null);
-
-        users.setCustomView(users_tab_view);
-        rooms.setCustomView(rooms_tab_view);
-
-        ((TextView) users_tab_view.findViewById(R.id.custom_tab_title)).setText("Users");
-        ((TextView) rooms_tab_view.findViewById(R.id.custom_tab_title)).setText("Rooms");
-
-        tabListener = new com.actionbarsherlock.app.ActionBar.TabListener() {
-
-            @Override
-            public void onTabSelected(com.actionbarsherlock.app.ActionBar.Tab tab,
-                                      android.support.v4.app.FragmentTransaction ft) {
-                Tab.setCurrentItem(tab.getPosition());
-
-                searchview = (com.actionbarsherlock.widget.SearchView) findViewById(R.id.searchviewuser);
-                if (searchview != null) {
-
-                    searchview.setIconified(true);
-                    searchview.setIconified(true);
-                }
-                searchview = (com.actionbarsherlock.widget.SearchView) findViewById(R.id.searchviewroom);
-                if (searchview != null) {
-
-                    searchview.setIconified(true);
-                    searchview.setIconified(true);
-                }
-
-                //to set tab's icon
-                if (tab.getPosition() == 0) {
-
-                    (users_tab_view.findViewById(R.id.custom_tab_icon)).setBackgroundResource(R.drawable.selected_user);
-                    (rooms_tab_view.findViewById(R.id.custom_tab_icon)).setBackgroundResource(R.drawable.group_unselected);
-                    ((TextView) users_tab_view.findViewById(R.id.custom_tab_title)).setTextColor(Color.parseColor("#0000EE"));
-                    ((TextView) rooms_tab_view.findViewById(R.id.custom_tab_title)).setTextColor(Color.parseColor("#CCCCCC"));
-                    currentFragment = 0;
-
-                } else {
-
-                    (users_tab_view.findViewById(R.id.custom_tab_icon)).setBackgroundResource(R.drawable.unselected_user);
-                    (rooms_tab_view.findViewById(R.id.custom_tab_icon)).setBackgroundResource(R.drawable.group_selected);
-                    ((TextView) users_tab_view.findViewById(R.id.custom_tab_title)).setTextColor(Color.parseColor("#CCCCCC"));
-                    ((TextView) rooms_tab_view.findViewById(R.id.custom_tab_title)).setTextColor(Color.parseColor("#0000EE"));
-                    currentFragment = 1;
-                }
-
-            }
-
-            @Override
-            public void onTabUnselected(com.actionbarsherlock.app.ActionBar.Tab tab,
-                                        android.support.v4.app.FragmentTransaction ft) {
-
-                searchview = (com.actionbarsherlock.widget.SearchView) findViewById(R.id.searchviewuser);
-                if (searchview != null) {
-
-                    searchview.setIconified(true);
-                    searchview.setIconified(true);
-                }
-                searchview = (com.actionbarsherlock.widget.SearchView) findViewById(R.id.searchviewroom);
-                if (searchview != null) {
-
-                    searchview.setIconified(true);
-                    searchview.setIconified(true);
-                }
-
-// 	TODO Auto-generated method stub
-            }
-
-            @Override
-            public void onTabReselected(
-                    com.actionbarsherlock.app.ActionBar.Tab tab,
-                    android.support.v4.app.FragmentTransaction ft) {
-                // TODO Auto-generated method stub
-
-            }
-        };
-
-        getSupportActionBar().addTab(users.setTabListener(tabListener));
-        getSupportActionBar().addTab(rooms.setTabListener(tabListener));
-
-        getSupportActionBar().setDisplayOptions(com.actionbarsherlock.app.ActionBar.DISPLAY_SHOW_CUSTOM | com.actionbarsherlock.app.ActionBar.DISPLAY_SHOW_HOME);
-        getSupportActionBar().setDisplayUseLogoEnabled(false);
-        getSupportActionBar().setDisplayShowCustomEnabled(true);
-
-        getSupportActionBar().setCustomView(R.layout.abs_user_layout);
-
-        getSupportActionBar().setIcon(R.drawable.chat_icon);
+        setupTabIcons();
     }
 
-    public com.actionbarsherlock.app.ActionBar.Tab createTab(int view, int titleView, String title) {
-        com.actionbarsherlock.app.ActionBar.Tab tab = getSupportActionBar().newTab();
+    private void setupTabIcons() {
+// two tabs are set here
 
-        tab.setCustomView(view);
+        TextView tabOne = (TextView) LayoutInflater.from(this).inflate(R.layout.custom_tab, null);
+        tabOne.setText("USERS");
+        tabOne.setTypeface(null, Typeface.BOLD);
+        tabOne.setTextSize(14);
+        tabOne.setTextColor(getResources().getColorStateList(R.color.selector));
+        tabLayout.getTabAt(0).setCustomView(tabOne);
+        tabOne.setSelected(true);
 
-        return tab;
-    }
+        TextView tabTwo = (TextView) LayoutInflater.from(this).inflate(R.layout.custom_tab, null);
+        tabTwo.setText("ROOMS");
+        tabTwo.setTypeface(null, Typeface.BOLD);
+        tabTwo.setTextSize(14);
+        tabTwo.setTextColor(getResources().getColorStateList(R.color.selector));
+        tabLayout.getTabAt(1).setCustomView(tabTwo);
 
-
-
-    @Override
-    protected void onStart() {
-        super.onStart();
 
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
+    private void setupViewPager(ViewPager viewPager, HashMap<String,String> chatSettings) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
-    @Override
-    protected void onPause() {
-         super.onPause();
-    }
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("chatSettings", chatSettings);
 
-    @Override
-    protected void onStop() {
+// set Fragmentclass Arguments
+        DisplayUser userObj = new DisplayUser();
+        userObj.setArguments(bundle);
+        adapter.addFrag(userObj, "Users");
+        adapter.addFrag(new DisplayRoom(), "Rooms");
 
-        super.onStop();
-
-    }
-
-
-    @Override
-    protected void onDestroy() {
-        service.disconnectChat();
-        super.onDestroy();
+        viewPager.setAdapter(adapter);
 
     }
 
+    class ViewPagerAdapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragmentList = new ArrayList<>();
+        private final List<String> mFragmentTitleList = new ArrayList<>();
+
+        public ViewPagerAdapter(FragmentManager manager) {
+            super(manager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragmentList.size();
+        }
+
+        public void addFrag(Fragment fragment, String title) {
+            mFragmentList.add(fragment);
+            mFragmentTitleList.add(title);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitleList.get(position);
+        }
+
+
+    }
 
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/customToolbar"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:background="@color/tool_bar_background"
+    android:theme="@style/Base.ThemeOverlay.AppCompat.Dark"
+
+    >
+
+    <TextView
+        android:id="@+id/inputSearch"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="25dp"
+        android:text="@string/tool_bar_string"
+        android:gravity="center_horizontal"
+        android:textColor="@color/white"
+        android:textSize="@dimen/imputSearch_textSize"
+        android:textStyle="bold" />
+
+
+</android.support.v7.widget.Toolbar>

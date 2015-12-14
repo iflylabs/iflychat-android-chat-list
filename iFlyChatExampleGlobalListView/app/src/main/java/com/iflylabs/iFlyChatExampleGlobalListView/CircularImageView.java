@@ -1,4 +1,4 @@
-package com.iflylabs.iFlyChatExampleGlobalListView;
+package com.iflylabs.iflychatexamplegloballistview;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -22,7 +22,6 @@ public class CircularImageView extends ImageView {
     private Paint paint;
     private Paint paintBorder;
     private BitmapShader shader;
-    private int color;
 
     public CircularImageView(Context context) {
         this(context, null);
@@ -38,8 +37,10 @@ public class CircularImageView extends ImageView {
         paint.setAntiAlias(true);
 
         paintBorder = new Paint();
-        setBorderColor(Color.parseColor(a.getString(R.styleable.CircularImageView_bordercolor)));
+        setBorderColor(Color.parseColor("#FFFFFF"));
+        setBorderWidth(0);
         paintBorder.setAntiAlias(true);
+
     }
 
     public void setBorderWidth(int borderWidth) {
@@ -98,10 +99,8 @@ public class CircularImageView extends ImageView {
         int specSize = MeasureSpec.getSize(measureSpec);
 
         if (specMode == MeasureSpec.EXACTLY) {
-            // We were told how big to be
             result = specSize;
         } else {
-            // Measure the text
             result = viewWidth;
 
         }
@@ -115,10 +114,8 @@ public class CircularImageView extends ImageView {
         int specSize = MeasureSpec.getSize(measureSpecHeight);
 
         if (specMode == MeasureSpec.EXACTLY) {
-            // We were told how big to be
             result = specSize;
         } else {
-            // Measure the text (beware: ascent is a negative number)
             result = viewHeight;
         }
         return result;

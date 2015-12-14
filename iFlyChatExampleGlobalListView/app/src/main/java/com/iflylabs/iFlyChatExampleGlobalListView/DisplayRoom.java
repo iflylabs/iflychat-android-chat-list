@@ -1,27 +1,30 @@
-package com.iflylabs.iFlyChatExampleGlobalListView;
-
+package com.iflylabs.iflychatexamplegloballistview;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import com.actionbarsherlock.app.SherlockFragment;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-import com.actionbarsherlock.widget.SearchView;
+
 import com.iflylabs.iFlyChatLibrary.iFlyChatRoom;
 import com.iflylabs.iFlyChatLibrary.iFlyChatRoster;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class DisplayRoom extends SherlockFragment {
+public class DisplayRoom extends Fragment {
     View display_room;
     ListView list;
     BroadcastReceiver receiver;
@@ -59,44 +62,41 @@ public class DisplayRoom extends SherlockFragment {
         };
 
         return display_room;
-    }
-
-    ;
+    };
 
     // Bind data of view with the RoomAdapter class.
     public void bindData() {
 
-            list = (ListView) display_room.findViewById(R.id.user_list);
+        list = (ListView) display_room.findViewById(R.id.user_list);
 
-            //Bind the data with listview
-            bindingData = new RoomAdapter(roomList, getActivity());
+        //Bind the data with listview
+        bindingData = new RoomAdapter(roomList, getActivity());
 
-            //After binding
-            list.setAdapter(bindingData);
+        //After binding
+        list.setAdapter(bindingData);
 
 
     }
 
-    // To Search a room from the complete RoomList.
     @Override
-    public void onCreateOptionsMenu(Menu menu, com.actionbarsherlock.view.MenuInflater inflater) {
-
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        MenuItem item = menu.add("Search");
+        inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        // Configure the search info and add any event listeners
+        searchView.setId(R.id.searchviewroom);
 
-        com.actionbarsherlock.widget.SearchView sv = new com.actionbarsherlock.widget.SearchView(getSherlockActivity().getSupportActionBar().getThemedContext());
-        sv.setId(R.id.searchviewuser);
-
-        item.setActionView(sv);
-        item.setIcon(R.drawable.ic_action_search);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW
+        searchItem.setActionView(searchView);
+        searchItem.setIcon(R.drawable.ic_search);
+        searchItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW
                 | MenuItem.SHOW_AS_ACTION_IF_ROOM);
 
-        sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                //...
+
                 return false;
             }
 
@@ -104,6 +104,7 @@ public class DisplayRoom extends SherlockFragment {
             public boolean onQueryTextChange(String newText) {
 
                 if (bindingData != null) {
+
                     bindingData.resetData();
                     bindingData.getFilter().filter(newText.toString());
                 }
@@ -111,12 +112,15 @@ public class DisplayRoom extends SherlockFragment {
                 return false;
             }
         });
+
+
     }
 
     @Override
     public void onStart() {
         super.onStart();
         LocalBroadcastManager.getInstance(this.getActivity()).registerReceiver((receiver), new IntentFilter("iFlyChat.onGlobalListUpdate"));
+
     }
 
 

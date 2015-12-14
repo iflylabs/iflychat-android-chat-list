@@ -1,13 +1,10 @@
-package com.iflylabs.iFlyChatExampleGlobalListView;
+package com.iflylabs.iflychatexamplegloballistview;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.ColorFilter;
-import android.graphics.PixelFormat;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
@@ -28,7 +25,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by iflylabs on 03/08/15.
@@ -40,15 +39,28 @@ public class UserAdapter extends ArrayAdapter<iFlyChatUser> {
     Context context;
     private Filter userFilter;
     List<iFlyChatUser> userList, originalUsers;
+    private TextDrawable.IBuilder mDrawableBuilder;
+    private ColorGenerator mColorGenerator = ColorGenerator.MATERIAL;
+
+    int i=0;
+    private HashMap<String ,String>chatSettings;
+    private boolean defaultUserImageFlag =false;
+
+
+
+
+
 //    UserHolder holder;
 
-    public UserAdapter(List<iFlyChatUser> users, Context ctx) {
+    public UserAdapter(List<iFlyChatUser> users, Context ctx, TextDrawable.IBuilder mDrawableBuilder, HashMap<String, String> chatSettings) {
 
         super(ctx, R.layout.list_row);
 
         this.userList = users;
         this.context = ctx;
+        this.mDrawableBuilder = mDrawableBuilder;
         this.originalUsers = users;
+        this.chatSettings = chatSettings;
     }
 
     public void resetData() {
@@ -84,51 +96,287 @@ public class UserAdapter extends ArrayAdapter<iFlyChatUser> {
 
             // Now we can fill the layout with the right values
 
-            holder = new UserHolder();
-
-            holder.tvname = (TextView) v.findViewById(R.id.user_name); //  name
-            holder.tvstatusImage = (ImageView) v.findViewById(R.id.user_image); // thumb image
-
+            holder = new UserHolder(v);
             v.setTag(holder);
 
         } else
             holder = (UserHolder) v.getTag();
 
+
         holder.tvname.setText(userList.get(position).getName());
 
-        // get AvatarUrl of the user and if it is null or empty show the default Url.
-        String avatarUrl = userList.get(position).getAvatarUrl();
-        if (avatarUrl.equals(null) || avatarUrl.equals("")) {
-            avatarUrl = "//cdn.iflychat.com/mobile/images/default_avatar.png";
-        }
-
-
-        // Create an object for subclass of AsyncTask
-        if (holder.tvstatusImage != null) {
-            // check for url.
-            if (cancelPotentialDownload(avatarUrl, holder.tvstatusImage)) {
-                GetUsersTask task = new GetUsersTask(holder.tvstatusImage);
-                DownloadedDrawable downloadedDrawable = new DownloadedDrawable(task);
-                holder.tvstatusImage.setImageDrawable(downloadedDrawable);
-                task.execute("http:" + avatarUrl);
-            }
-        }
-
+        setChatImage(holder, userList.get(position).getId(), userList.get(position).getName(), userList.get(position).getAvatarUrl());
 
         return v;
     }
 
-    private static class UserHolder {
-        TextView tvname;
-        ImageView tvstatusImage;
+    /**
+     * Method to set gmail like circular images in view
+     * @param holder
+     * @param id user id
+     * @param userName
+     * @param avatarUrl
+     */
+    private void setChatImage(UserHolder holder, String id, String userName, String avatarUrl){
 
+        String upToNCharacters = id.substring(0, Math.min(id.length(), 2));
+        //User without Prefix
+        if(!upToNCharacters.equals("0-")){
+
+            if(!avatarUrl.equals(null) && !avatarUrl.equals("")) {
+
+                if (avatarUrl.contains("default_avatar") || avatarUrl.contains("gravatar")) {
+
+                    if (defaultUserImageFlag == true) {
+
+                        holder.userImage2.setVisibility(View.VISIBLE);
+                        holder.tvstatusImage.setVisibility(View.GONE);
+                        Drawable placeholder;
+
+                        if (holder.number == 0)
+                            placeholder = ContextCompat.getDrawable(context, R.drawable.male_user);
+                        else
+                            placeholder = ContextCompat.getDrawable(context, R.drawable.female_user);
+
+                        holder.userImage2.setImageDrawable(placeholder);
+                        holder.userImage2.setBorderColor(mColorGenerator.getColor(userName));
+
+                    } else {
+                        char firstLetter = userName.charAt(0);
+                        String name = Character.toString(firstLetter);
+                        if(name.matches("[a-zA-Z]+")) {
+
+                            holder.userImage2.setVisibility(View.GONE);
+                            holder.tvstatusImage.setVisibility(View.VISIBLE);
+                            char upperCaseLetter = Character.toUpperCase(userName.charAt(0));
+                            TextDrawable drawable = mDrawableBuilder.build(String.valueOf(upperCaseLetter), mColorGenerator.getColor(userName));
+                            holder.tvstatusImage.setImageDrawable(drawable);
+                            holder.view.setBackgroundColor(Color.TRANSPARENT);
+                        }
+                        //Name Contains number or special character
+                        else {
+
+                            holder.userImage2.setVisibility(View.VISIBLE);
+                            holder.tvstatusImage.setVisibility(View.GONE);
+                            Drawable placeholder;
+
+                            if(holder.number==0)
+                                placeholder =   ContextCompat.getDrawable(context, R.drawable.male_user);
+                            else
+                                placeholder =   ContextCompat.getDrawable(context, R.drawable.female_user);
+
+                            holder.userImage2.setImageDrawable(placeholder);
+                            holder.userImage2.setBorderColor(mColorGenerator.getColor(userName));
+
+                        }
+
+                    }
+                } else {
+
+                    if (holder.userImage2 != null) {
+                        holder.tvstatusImage.setVisibility(View.GONE);
+                        holder.userImage2.setVisibility(View.VISIBLE);
+
+                        // check for url.
+                        if (cancelPotentialDownload(avatarUrl, holder.userImage2)) {
+                            GetUsersTask task = new GetUsersTask(holder.userImage2);
+                            DownloadedDrawable downloadedDrawable = new DownloadedDrawable(task);
+                            holder.userImage2.setImageDrawable(downloadedDrawable);
+                            task.execute("http:" + avatarUrl);
+
+                        }
+                    }
+                }
+            }
+            else if(defaultUserImageFlag==true) {
+
+                holder.userImage2.setVisibility(View.VISIBLE);
+                holder.tvstatusImage.setVisibility(View.GONE);
+                Drawable placeholder;
+
+                if(holder.number==0)
+                    placeholder =   ContextCompat.getDrawable(context, R.drawable.male_user);
+                else
+                    placeholder =   ContextCompat.getDrawable(context, R.drawable.female_user);
+
+                holder.userImage2.setImageDrawable(placeholder);
+                holder.userImage2.setBorderColor(mColorGenerator.getColor(userName));
+            }
+            else{
+                char firstLetter = userName.charAt(0);
+                String name = Character.toString(firstLetter);
+                if(name.matches("[a-zA-Z]+")) {
+
+                    holder.userImage2.setVisibility(View.GONE);
+                    holder.tvstatusImage.setVisibility(View.VISIBLE);
+                    char upperCaseLetter = Character.toUpperCase(userName.charAt(0));
+                    TextDrawable drawable = mDrawableBuilder.build(String.valueOf(upperCaseLetter), mColorGenerator.getColor(userName));
+                    holder.tvstatusImage.setImageDrawable(drawable);
+                    holder.view.setBackgroundColor(Color.TRANSPARENT);
+                }
+                //Name Contains number or special character
+                else {
+
+                    holder.userImage2.setVisibility(View.VISIBLE);
+                    holder.tvstatusImage.setVisibility(View.GONE);
+                    Drawable placeholder;
+
+                    if(holder.number==0)
+                        placeholder =   ContextCompat.getDrawable(context, R.drawable.male_user);
+                    else
+                        placeholder =   ContextCompat.getDrawable(context, R.drawable.female_user);
+
+                    holder.userImage2.setImageDrawable(placeholder);
+                    holder.userImage2.setBorderColor(mColorGenerator.getColor(userName));
+
+                }
+            }
+
+        }
+        else{
+            if(defaultUserImageFlag==true){
+
+                if (holder.userImage2 != null) {
+                    holder.tvstatusImage.setVisibility(View.GONE);
+                    holder.userImage2.setVisibility(View.VISIBLE);
+
+                    // check for url.
+                    if (cancelPotentialDownload(avatarUrl, holder.userImage2)) {
+                        GetUsersTask task = new GetUsersTask(holder.userImage2);
+                        DownloadedDrawable downloadedDrawable = new DownloadedDrawable(task);
+                        holder.userImage2.setImageDrawable(downloadedDrawable);
+                        task.execute("http:" + avatarUrl);
+
+                    }
+                }
+            }
+            else{
+
+                String value  = chatSettings.get("guestPrefix");
+                String name = userName.replaceFirst(value,"");
+
+                if(name.matches("[a-zA-Z]+")) {
+
+                    holder.userImage2.setVisibility(View.GONE);
+                    holder.tvstatusImage.setVisibility(View.VISIBLE);
+                    char upperCaseLetter = Character.toUpperCase(name.charAt(0));
+
+                    TextDrawable drawable = mDrawableBuilder.build(String.valueOf(upperCaseLetter), mColorGenerator.getColor(name));
+                    holder.tvstatusImage.setImageDrawable(drawable);
+                    holder.view.setBackgroundColor(Color.TRANSPARENT);
+                }
+                else{
+
+                    holder.userImage2.setVisibility(View.VISIBLE);
+                    holder.tvstatusImage.setVisibility(View.GONE);
+                    Drawable placeholder;
+
+                    if(holder.number==0)
+                        placeholder =   ContextCompat.getDrawable(context, R.drawable.male_user);
+                    else
+                        placeholder =   ContextCompat.getDrawable(context, R.drawable.female_user);
+
+                    holder.userImage2.setImageDrawable(placeholder);
+                    holder.userImage2.setBorderColor(mColorGenerator.getColor(userName));
+                }
+            }
+        }
+
+    }
+
+
+    private void updateCheckedState(UserHolder holder, String id, String userName) {
+
+        String upToNCharacters = id.substring(0, Math.min(id.length(), 2));
+
+        //User with Prefix
+        if(upToNCharacters.equals("0-")){
+            String value  = (String)chatSettings.get("guestPrefix");
+            String name = userName.replaceFirst(value,"");
+
+            if(name.matches("[a-zA-Z]+")){
+                holder.userImage2.setVisibility(View.GONE);
+                holder.tvstatusImage.setVisibility(View.VISIBLE);
+            char upperCaseLetter = Character.toUpperCase(name.charAt(0));
+
+            TextDrawable drawable = mDrawableBuilder.build(String.valueOf(upperCaseLetter), mColorGenerator.getColor(name));
+            holder.tvstatusImage.setImageDrawable(drawable);
+            holder.view.setBackgroundColor(Color.TRANSPARENT);
+            }
+            ////Name Contains number or special character
+            else{
+                holder.userImage2.setVisibility(View.VISIBLE);
+                holder.tvstatusImage.setVisibility(View.GONE);
+                Drawable placeholder;
+                if(holder.number==0)
+                    placeholder =   ContextCompat.getDrawable(context, R.drawable.male_user);
+                else
+                    placeholder =   ContextCompat.getDrawable(context, R.drawable.female_user);
+
+                holder.userImage2.setImageDrawable(placeholder);
+                holder.userImage2.setBorderColor(mColorGenerator.getColor(name));
+
+            }
+        }
+        //Normal User
+        else {
+                // Name contains letters
+            if(userName.matches("[a-zA-Z]+")) {
+                holder.userImage2.setVisibility(View.GONE);
+                holder.tvstatusImage.setVisibility(View.VISIBLE);
+                char upperCaseLetter = Character.toUpperCase(userName.charAt(0));
+                TextDrawable drawable = mDrawableBuilder.build(String.valueOf(upperCaseLetter), mColorGenerator.getColor(userName));
+                holder.tvstatusImage.setImageDrawable(drawable);
+                holder.view.setBackgroundColor(Color.TRANSPARENT);
+            }
+            //Name Contains number or special character
+            else {
+
+                holder.userImage2.setVisibility(View.VISIBLE);
+                holder.tvstatusImage.setVisibility(View.GONE);
+                Drawable placeholder;
+
+                if(holder.number==0)
+                    placeholder =   ContextCompat.getDrawable(context, R.drawable.male_user);
+                else
+                    placeholder =   ContextCompat.getDrawable(context, R.drawable.female_user);
+
+                holder.userImage2.setImageDrawable(placeholder);
+                holder.userImage2.setBorderColor(mColorGenerator.getColor(userName));
+
+            }
+        }
+
+    }
+
+
+
+    private static class UserHolder {
+        private TextView tvname;
+        private ImageView tvstatusImage;
+        private CircularImageView userImage2;
+
+        private View view;
+        private int number;
+
+
+        private UserHolder(View view) {
+
+            this.view = view;
+            tvname = (TextView) view.findViewById(R.id.user_name); //  name
+            tvstatusImage = (ImageView) view.findViewById(R.id.user_image); // thumb image
+            userImage2 = (CircularImageView) view.findViewById(R.id.user_image2);
+            Random ran = new Random();
+            int number = ran.nextInt(2);
+            this.number = number;
+        }
     }
 
     @Override
     public Filter getFilter() {
         if (userFilter == null)
             userFilter = new PlanetFilter();
-        System.out.println(userFilter);
+
         return userFilter;
     }
 
@@ -214,9 +462,6 @@ public class UserAdapter extends ArrayAdapter<iFlyChatUser> {
                         if (result != null) {
                             Drawable drawable = new BitmapDrawable(result);
                             imageView.setImageDrawable(drawable);
-                        } else {
-                            Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.default_avatar);
-                            imageView.setImageDrawable(placeholder);
                         }
                     }
 
@@ -237,7 +482,7 @@ public class UserAdapter extends ArrayAdapter<iFlyChatUser> {
                 stream = getHttpConnection(url);
                 bitmap = BitmapFactory.
                         decodeStream(stream, null, bmOptions);
-                stream.close();
+
             } catch (IOException e1) {
                 e1.printStackTrace();
             }

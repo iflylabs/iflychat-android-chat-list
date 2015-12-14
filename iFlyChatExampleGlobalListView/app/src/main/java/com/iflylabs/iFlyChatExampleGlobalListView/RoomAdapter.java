@@ -1,11 +1,8 @@
-package com.iflylabs.iFlyChatExampleGlobalListView;
+package com.iflylabs.iflychatexamplegloballistview;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,21 +10,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.iflylabs.iFlyChatLibrary.iFlyChatRoom;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.ref.WeakReference;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-
-/**
- * Created by iflylabs on 06/08/15.
- */
 
 
 /**
@@ -38,7 +23,8 @@ public class RoomAdapter extends ArrayAdapter<iFlyChatRoom> {
     Context context;
     private Filter roomFilter;
     List<iFlyChatRoom> roomList, originalRooms;
-    UserHolder holder;
+    RoomHolder holder;
+    private ColorGenerator mColorGenerator = ColorGenerator.MATERIAL;
 
     public RoomAdapter(List<iFlyChatRoom> rooms, Context ctx) {
 
@@ -82,39 +68,40 @@ public class RoomAdapter extends ArrayAdapter<iFlyChatRoom> {
             v = inflater.inflate(R.layout.list_row, null);
             // Now we can fill the layout with the right values
 
-            holder = new UserHolder();
-
-            holder.tvname = (TextView) v.findViewById(R.id.user_name); //  name
-            holder.tvstatusImage = (ImageView) v.findViewById(R.id.user_image); // thumb image
-
-
+            holder = new RoomHolder(v);
             v.setTag(holder);
 
 
         } else
-            holder = (UserHolder) v.getTag();
+            holder = (RoomHolder) v.getTag();
 
-        holder.tvname.setText(roomList.get(position).getName());
+        String roomName = roomList.get(position).getName();
+        holder.tvname.setText(roomName);
 
-        String avatarUrl = roomList.get(position).getAvatarUrl();
-        if (avatarUrl.equals(null) || avatarUrl.equals("")) {
-            avatarUrl = "//cdn.iflychat.com/mobile/images/default_room.png";
+        holder.tvstatusImage.setVisibility(View.GONE);
+        holder.userImage2.setVisibility(View.VISIBLE);
 
-        }
+        Drawable placeHolder = ContextCompat.getDrawable(context, R.drawable.home);
+        holder.userImage2.setImageDrawable(placeHolder);
+        holder.userImage2.setBorderColor(mColorGenerator.getColor(roomName));
 
-        ImageView imageView = holder.tvstatusImage;
-        // Create an object for subclass of AsyncTask
-        GetRoomsTask task = new GetRoomsTask(imageView);
-        DownloadedDrawable downloadedDrawable = new DownloadedDrawable(task);
-        holder.tvstatusImage.setImageDrawable(downloadedDrawable);
-        task.execute("http:" + avatarUrl);
 
         return v;
     }
 
-    private static class UserHolder {
-        TextView tvname;
-        ImageView tvstatusImage;
+    private static class RoomHolder {
+        private TextView tvname;
+        private ImageView tvstatusImage;
+        private CircularImageView userImage2;
+        private View view;
+
+
+        private RoomHolder(View view) {
+            this.view = view;
+            tvname = (TextView) view.findViewById(R.id.user_name); //  name
+            tvstatusImage = (ImageView) view.findViewById(R.id.user_image); // thumb image
+            userImage2 = (CircularImageView) view.findViewById(R.id.user_image2);
+        }
 
     }
 
@@ -122,7 +109,6 @@ public class RoomAdapter extends ArrayAdapter<iFlyChatRoom> {
     public Filter getFilter() {
         if (roomFilter == null)
             roomFilter = new PlanetFilter();
-        System.out.println(roomFilter);
         return roomFilter;
     }
 
@@ -174,132 +160,5 @@ public class RoomAdapter extends ArrayAdapter<iFlyChatRoom> {
     }
 
 
-    private class GetRoomsTask extends AsyncTask<String, Void, Bitmap> {
-        private String url;
-        private WeakReference<ImageView> rowImageView;
 
-        public GetRoomsTask(ImageView imageView) {
-
-            rowImageView = new WeakReference<ImageView>(imageView);
-        }
-
-        @Override
-        protected Bitmap doInBackground(String... urls) {
-            Bitmap map = null;
-            for (String url : urls) {
-                map = downloadImage(url);
-            }
-            return map;
-        }
-
-        // Sets the Bitmap returned by doInBackground
-        @Override
-        protected void onPostExecute(Bitmap result) {
-
-            if (isCancelled()) {
-                result = null;
-            }
-            if (rowImageView != null) {
-                ImageView imageView = rowImageView.get();
-                GetRoomsTask getXMLTask = getGetRoomsTask(imageView);
-                // Change bitmap only if this process is still associated with it
-                if (this == getXMLTask) {
-                    if (imageView != null) {
-                        if (result != null) {
-                            Drawable drawable = new BitmapDrawable(result);
-                            imageView.setImageDrawable(drawable);
-                        } else {
-                            Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.default_room);
-                            imageView.setImageDrawable(placeholder);
-                        }
-                    }
-
-                }
-
-            }
-
-            rowImageView.get().setImageBitmap(result);
-        }
-
-        // Creates Bitmap from InputStream and returns it
-        private Bitmap downloadImage(String url) {
-            Bitmap bitmap = null;
-            InputStream stream = null;
-            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-            bmOptions.inSampleSize = 1;
-
-            try {
-                stream = getHttpConnection(url);
-                bitmap = BitmapFactory.
-                        decodeStream(stream, null, bmOptions);
-                stream.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-            return bitmap;
-        }
-
-        // Makes HttpURLConnection and returns InputStream
-        private InputStream getHttpConnection(String urlString)
-                throws IOException {
-            InputStream stream = null;
-            URL url = new URL(urlString);
-            URLConnection connection = url.openConnection();
-
-            try {
-                HttpURLConnection httpConnection = (HttpURLConnection) connection;
-                httpConnection.setRequestMethod("GET");
-                httpConnection.connect();
-
-                if (httpConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    stream = httpConnection.getInputStream();
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            return stream;
-        }
-    }
-
-    static class DownloadedDrawable extends BitmapDrawable {
-        private final WeakReference<GetRoomsTask> getRoomsTaskReference;
-
-        public DownloadedDrawable(GetRoomsTask getRoomsTask) {
-
-            getRoomsTaskReference =
-                    new WeakReference<GetRoomsTask>(getRoomsTask);
-        }
-
-        public GetRoomsTask getGetRoomsTask() {
-            return getRoomsTaskReference.get();
-        }
-
-
-    }
-
-    private static boolean cancelPotentialDownload(String url, ImageView imageView) {
-        GetRoomsTask getRoomsTask = getGetRoomsTask(imageView);
-
-        if (getRoomsTask != null) {
-            String bitmapUrl = getRoomsTask.url;
-            if ((bitmapUrl == null) || (!bitmapUrl.equals(url))) {
-                getRoomsTask.cancel(true);
-            } else {
-                // The same URL is already being downloaded.
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static GetRoomsTask getGetRoomsTask(ImageView imageView) {
-        if (imageView != null) {
-            Drawable drawable = imageView.getDrawable();
-            if (drawable instanceof DownloadedDrawable) {
-                DownloadedDrawable downloadedDrawable = (DownloadedDrawable) drawable;
-                return downloadedDrawable.getGetRoomsTask();
-            }
-        }
-        return null;
-    }
 }

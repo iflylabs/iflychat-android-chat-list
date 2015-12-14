@@ -2,32 +2,40 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/user_row"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <!-- this may not be needed -->
-    <TableRow
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
 
-        <com.iflylabs.iFlyChatExampleGlobalListView.CircularImageView
+
+        <ImageView
             android:id="@+id/user_image"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_marginBottom="10dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="10dp"
-            app:bordercolor="#FFFFFF" />
+            android:layout_width="@dimen/user_image_layout_width"
+            android:layout_height="@dimen/user_image_layout_height"
+            android:layout_marginLeft="@dimen/user_image_layout_marginLeft"
+            android:layout_marginRight="@dimen/user_image_layout_marginRight"
+            android:layout_marginTop="@dimen/user_image_layout_marginTop"
+            android:layout_marginBottom="@dimen/user_image_layout_marginBottom"
+            />
+
+        <com.iflylabs.iflychatexamplegloballistview.CircularImageView
+            android:id="@+id/user_image2"
+            android:layout_width="@dimen/user_image_layout_width"
+            android:layout_height="@dimen/user_image_layout_height"
+            android:layout_marginLeft="@dimen/user_image_layout_marginLeft"
+            android:layout_marginRight="@dimen/user_image_layout_marginRight"
+            android:layout_marginTop="@dimen/user_image_layout_marginTop"
+            android:layout_marginBottom="@dimen/user_image_layout_marginBottom"
+             />
+
 
         <LinearLayout
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:orientation="vertical">
 
             <LinearLayout
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
@@ -35,16 +43,15 @@
                     android:id="@+id/user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
                     android:maxLines="1"
-                    android:textColor="#000000"
-                    android:textSize="15sp"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/user_name_textSize"
                     android:textStyle="normal" />
 
             </LinearLayout>
 
+
         </LinearLayout>
 
-    </TableRow>
 
 </LinearLayout>
